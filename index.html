@@ -1,1 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting to Portfolio…</title>
 
+  <!-- Fallback redirect for users without JS / slow networks -->
+  <noscript>
+    <meta http-equiv="refresh" content="0; url=/portfolio" />
+  </noscript>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #05060a;
+      --accent: #7c5cff;
+      --accent-2: #19e3c9;
+      --text: #e8ecff;
+      --muted: #8a90b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #root { position: relative; width: 100vw; height: 100vh; }
+
+    canvas#starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 24px;
+    }
+
+    /* Animated aurora glow behind content */
+    .aurora {
+      position: fixed;
+      inset: -20%;
+      z-index: 1;
+      background:
+        radial-gradient(40% 40% at 30% 30%, rgba(124, 92, 255, 0.28), transparent 70%),
+        radial-gradient(45% 45% at 70% 60%, rgba(25, 227, 201, 0.20), transparent 70%),
+        radial-gradient(35% 35% at 50% 85%, rgba(255, 92, 168, 0.18), transparent 70%);
+      filter: blur(40px);
+      animation: drift 16s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes drift {
+      0%   { transform: translate3d(-3%, -2%, 0) scale(1.05); }
+      50%  { transform: translate3d(2%, 3%, 0) scale(1.12); }
+      100% { transform: translate3d(3%, -3%, 0) scale(1.05); }
+    }
+
+    .badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      border: 1px solid rgba(25, 227, 201, 0.35);
+      border-radius: 999px;
+      padding: 8px 16px;
+      margin-bottom: 28px;
+      background: rgba(25, 227, 201, 0.06);
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.1s;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.25s;
+    }
+
+    h1 .grad {
+      background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 60%, #ff5ca8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      max-width: 540px;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.4s;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 132px;
+      height: 132px;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.55s;
+    }
+
+    .ring-wrap svg { transform: rotate(-90deg); }
+
+    .ring-bg { stroke: rgba(255, 255, 255, 0.08); }
+
+    .ring-fg {
+      stroke: url(#ringGrad);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+      filter: drop-shadow(0 0 8px rgba(124, 92, 255, 0.6));
+    }
+
+    .count {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 2.6rem;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.7s;
+    }
+
+    .btn {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      color: #07070d;
+      background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 100%);
+      box-shadow: 0 8px 30px rgba(124, 92, 255, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 40px rgba(124, 92, 255, 0.5); }
+
+    .btn-ghost {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .btn-ghost:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.08); }
+
+    .btn .arrow { transition: transform 0.18s ease; }
+    .btn-primary:hover .arrow { transform: translateX(4px); }
+
+    .paused-note {
+      margin-top: 22px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      min-height: 16px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aurora { animation: none; }
+      .badge, h1, .sub, .ring-wrap, .actions { animation: none; opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <canvas id="starfield"></canvas>
+  <div id="root"></div>
+
+  <!-- React via CDN — no build step, perfect for GitHub Pages -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const DESTINATION = "/portfolio";
+    const COUNTDOWN_SECONDS = 5;
+
+    function CountdownRing({ seconds, total }) {
+      const R = 58;
+      const C = 2 * Math.PI * R;
+      const progress = seconds / total;
+      const offset = C * (1 - progress);
+      return (
+        <div className="ring-wrap">
+          <svg width="132" height="132" viewBox="0 0 132 132">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#7c5cff" />
+                <stop offset="60%" stopColor="#19e3c9" />
+                <stop offset="100%" stopColor="#ff5ca8" />
+              </linearGradient>
+            </defs>
+            <circle className="ring-bg" cx="66" cy="66" r={R} fill="none" strokeWidth="6" />
+            <circle
+              className="ring-fg"
+              cx="66" cy="66" r={R} fill="none" strokeWidth="6"
+              strokeDasharray={C}
+              strokeDashoffset={offset}
+            />
+          </svg>
+          <div className="count">{seconds}</div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
+      const [paused, setPaused] = useState(false);
+
+      const go = useCallback(() => {
+        window.location.href = DESTINATION;
+      }, []);
+
+      // Pause the auto-redirect if the user shows intent to stay/interact.
+      useEffect(() => {
+        const pause = () => setPaused(true);
+        window.addEventListener("keydown", pause, { once: true });
+        return () => window.removeEventListener("keydown", pause);
+      }, []);
+
+      useEffect(() => {
+        if (paused) return;
+        if (remaining <= 0) { go(); return; }
+        const t = setTimeout(() => setRemaining((s) => s - 1), 1000);
+        return () => clearTimeout(t);
+      }, [remaining, paused, go]);
+
+      return (
+        <div className="stage">
+          <span className="badge">Duran Kse · Portfolio</span>
+          <h1>
+            Taking you to my<br />
+            <span className="grad">work &amp; projects</span>
+          </h1>
+          <p className="sub">
+            This page lives at the front door. The good stuff is one short hop away —
+            you'll land there automatically.
+          </p>
+
+          <CountdownRing seconds={Math.max(remaining, 0)} total={COUNTDOWN_SECONDS} />
+
+          <div className="actions">
+            <a className="btn btn-primary" href={DESTINATION} onClick={go}>
+              Enter now <span className="arrow">→</span>
+            </a>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setPaused((p) => !p)}
+            >
+              {paused ? "Resume redirect" : "Stay here"}
+            </button>
+          </div>
+
+          <div className="paused-note">
+            {paused
+              ? "Auto-redirect paused — press “Enter now” when ready."
+              : `Redirecting in ${Math.max(remaining, 0)}s…`}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+
+  <!-- Lightweight animated starfield (vanilla canvas, runs independently of React) -->
+  <script>
+    (function () {
+      const canvas = document.getElementById("starfield");
+      const ctx = canvas.getContext("2d");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let w, h, stars, raf;
+
+      function resize() {
+        w = canvas.width = window.innerWidth * devicePixelRatio;
+        h = canvas.height = window.innerHeight * devicePixelRatio;
+        const count = Math.min(220, Math.floor((window.innerWidth * window.innerHeight) / 9000));
+        stars = Array.from({ length: count }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          z: Math.random() * 0.8 + 0.2,
+          r: Math.random() * 1.4 + 0.3,
+        }));
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of stars) {
+          s.y += s.z * 0.35 * devicePixelRatio;
+          if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
+          const tw = 0.5 + Math.random() * 0.5;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r * devicePixelRatio, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(180, 200, 255, ${0.25 + s.z * 0.5 * tw})`;
+          ctx.fill();
+        }
+        raf = requestAnimationFrame(tick);
+      }
+
+      resize();
+      window.addEventListener("resize", resize);
+      if (reduce) {
+        tick(); cancelAnimationFrame(raf); // draw a single static frame
+      } else {
+        tick();
+      }
+    })();
+  </script>
+</body>
+</html>
