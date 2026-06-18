@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecting to Portfolio…</title>
 
-  <!-- Fallback redirect for users without JS / slow networks -->
+  <!-- Fallback redirect for users without JS -->
   <noscript>
-    <meta http-equiv="refresh" content="0; url=/portfolio" />
+    <meta http-equiv="refresh" content="0; url=/portfolio/" />
   </noscript>
+
+  <link rel="canonical" href="https://dukocuk.github.io/portfolio/" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,8 +36,6 @@
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
-
-    #root { position: relative; width: 100vw; height: 100vh; }
 
     canvas#starfield {
       position: fixed;
@@ -213,136 +213,132 @@
 <body>
   <div class="aurora"></div>
   <canvas id="starfield"></canvas>
-  <div id="root"></div>
 
-  <!-- React via CDN — no build step, perfect for GitHub Pages -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <div class="stage">
+    <span class="badge">Duran Köse · Portfolio</span>
+    <h1>
+      Taking you to my<br />
+      <span class="grad">work &amp; projects</span>
+    </h1>
+    <p class="sub">
+      This page lives at the front door. The good stuff is one short hop away —
+      you'll land there automatically.
+    </p>
 
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect, useRef, useCallback } = React;
+    <div class="ring-wrap">
+      <svg width="132" height="132" viewBox="0 0 132 132">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c5cff" />
+            <stop offset="60%" stop-color="#19e3c9" />
+            <stop offset="100%" stop-color="#ff5ca8" />
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="66" cy="66" r="58" fill="none" stroke-width="6" />
+        <circle id="ringFg" class="ring-fg" cx="66" cy="66" r="58" fill="none" stroke-width="6" />
+      </svg>
+      <div class="count" id="count">5</div>
+    </div>
 
-    const DESTINATION = "/portfolio";
-    const COUNTDOWN_SECONDS = 5;
+    <div class="actions">
+      <a class="btn btn-primary" id="enterBtn" href="/portfolio/">
+        Enter now <span class="arrow">→</span>
+      </a>
+      <button class="btn btn-ghost" id="stayBtn">Stay here</button>
+    </div>
 
-    function CountdownRing({ seconds, total }) {
-      const R = 58;
-      const C = 2 * Math.PI * R;
-      const progress = seconds / total;
-      const offset = C * (1 - progress);
-      return (
-        <div className="ring-wrap">
-          <svg width="132" height="132" viewBox="0 0 132 132">
-            <defs>
-              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#7c5cff" />
-                <stop offset="60%" stopColor="#19e3c9" />
-                <stop offset="100%" stopColor="#ff5ca8" />
-              </linearGradient>
-            </defs>
-            <circle className="ring-bg" cx="66" cy="66" r={R} fill="none" strokeWidth="6" />
-            <circle
-              className="ring-fg"
-              cx="66" cy="66" r={R} fill="none" strokeWidth="6"
-              strokeDasharray={C}
-              strokeDashoffset={offset}
-            />
-          </svg>
-          <div className="count">{seconds}</div>
-        </div>
-      );
-    }
+    <div class="paused-note" id="note">Redirecting in 5s…</div>
+  </div>
 
-    function App() {
-      const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
-      const [paused, setPaused] = useState(false);
-
-      const go = useCallback(() => {
-        window.location.href = DESTINATION;
-      }, []);
-
-      // Pause the auto-redirect if the user shows intent to stay/interact.
-      useEffect(() => {
-        const pause = () => setPaused(true);
-        window.addEventListener("keydown", pause, { once: true });
-        return () => window.removeEventListener("keydown", pause);
-      }, []);
-
-      useEffect(() => {
-        if (paused) return;
-        if (remaining <= 0) { go(); return; }
-        const t = setTimeout(() => setRemaining((s) => s - 1), 1000);
-        return () => clearTimeout(t);
-      }, [remaining, paused, go]);
-
-      return (
-        <div className="stage">
-          <span className="badge">Duran Kse · Portfolio</span>
-          <h1>
-            Taking you to my<br />
-            <span className="grad">work &amp; projects</span>
-          </h1>
-          <p className="sub">
-            This page lives at the front door. The good stuff is one short hop away —
-            you'll land there automatically.
-          </p>
-
-          <CountdownRing seconds={Math.max(remaining, 0)} total={COUNTDOWN_SECONDS} />
-
-          <div className="actions">
-            <a className="btn btn-primary" href={DESTINATION} onClick={go}>
-              Enter now <span className="arrow">→</span>
-            </a>
-            <button
-              className="btn btn-ghost"
-              onClick={() => setPaused((p) => !p)}
-            >
-              {paused ? "Resume redirect" : "Stay here"}
-            </button>
-          </div>
-
-          <div className="paused-note">
-            {paused
-              ? "Auto-redirect paused — press “Enter now” when ready."
-              : `Redirecting in ${Math.max(remaining, 0)}s…`}
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-
-  <!-- Lightweight animated starfield (vanilla canvas, runs independently of React) -->
+  <!-- Countdown + redirect (vanilla JS — no React/Babel needed) -->
   <script>
     (function () {
-      const canvas = document.getElementById("starfield");
-      const ctx = canvas.getContext("2d");
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      let w, h, stars, raf;
+      var DEST = "/portfolio/";
+      var TOTAL = 5;
+      var remaining = TOTAL;
+      var paused = false;
+      var timer = null;
+
+      var R = 58;
+      var C = 2 * Math.PI * R;
+      var ringFg = document.getElementById("ringFg");
+      var countEl = document.getElementById("count");
+      var noteEl = document.getElementById("note");
+      var stayBtn = document.getElementById("stayBtn");
+
+      ringFg.setAttribute("stroke-dasharray", C);
+
+      function render() {
+        var n = Math.max(remaining, 0);
+        var progress = n / TOTAL;
+        ringFg.setAttribute("stroke-dashoffset", C * (1 - progress));
+        countEl.textContent = n;
+        noteEl.textContent = paused
+          ? "Auto-redirect paused — press “Enter now” when ready."
+          : "Redirecting in " + n + "s…";
+        stayBtn.textContent = paused ? "Resume redirect" : "Stay here";
+      }
+
+      function go() { window.location.href = DEST; }
+
+      function tick() {
+        if (paused) return;
+        if (remaining <= 0) { go(); return; }
+        timer = setTimeout(function () {
+          remaining -= 1;
+          render();
+          tick();
+        }, 1000);
+      }
+
+      stayBtn.addEventListener("click", function () {
+        paused = !paused;
+        render();
+        if (!paused) tick();
+      });
+
+      // Pause the auto-redirect if the user shows intent to stay/interact.
+      window.addEventListener("keydown", function () {
+        if (!paused) { paused = true; render(); }
+      }, { once: true });
+
+      render();
+      tick();
+    })();
+  </script>
+
+  <!-- Lightweight animated starfield (vanilla canvas) -->
+  <script>
+    (function () {
+      var canvas = document.getElementById("starfield");
+      var ctx = canvas.getContext("2d");
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var w, h, stars, raf;
 
       function resize() {
         w = canvas.width = window.innerWidth * devicePixelRatio;
         h = canvas.height = window.innerHeight * devicePixelRatio;
-        const count = Math.min(220, Math.floor((window.innerWidth * window.innerHeight) / 9000));
-        stars = Array.from({ length: count }, () => ({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          z: Math.random() * 0.8 + 0.2,
-          r: Math.random() * 1.4 + 0.3,
-        }));
+        var count = Math.min(220, Math.floor((window.innerWidth * window.innerHeight) / 9000));
+        stars = Array.from({ length: count }, function () {
+          return {
+            x: Math.random() * w,
+            y: Math.random() * h,
+            z: Math.random() * 0.8 + 0.2,
+            r: Math.random() * 1.4 + 0.3,
+          };
+        });
       }
 
       function tick() {
         ctx.clearRect(0, 0, w, h);
-        for (const s of stars) {
+        for (var i = 0; i < stars.length; i++) {
+          var s = stars[i];
           s.y += s.z * 0.35 * devicePixelRatio;
           if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
-          const tw = 0.5 + Math.random() * 0.5;
+          var tw = 0.5 + Math.random() * 0.5;
           ctx.beginPath();
           ctx.arc(s.x, s.y, s.r * devicePixelRatio, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(180, 200, 255, ${0.25 + s.z * 0.5 * tw})`;
+          ctx.fillStyle = "rgba(180, 200, 255, " + (0.25 + s.z * 0.5 * tw) + ")";
           ctx.fill();
         }
         raf = requestAnimationFrame(tick);
@@ -350,11 +346,8 @@
 
       resize();
       window.addEventListener("resize", resize);
-      if (reduce) {
-        tick(); cancelAnimationFrame(raf); // draw a single static frame
-      } else {
-        tick();
-      }
+      tick();
+      if (reduce) cancelAnimationFrame(raf); // draw a single static frame
     })();
   </script>
 </body>
